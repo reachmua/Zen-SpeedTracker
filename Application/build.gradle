@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath 'com.android.tools.build:gradle:2.3.3'
     }
 }
 
@@ -24,6 +24,9 @@ dependencies {
     compile 'com.android.support:support-v13:25.3.1'
     compile project(':Shared')
     wearApp project(':Wearable')
+
+    // Zendesk Dependency
+    compile 'com.zendrive.sdk.android:ZendriveSDK:3.10.1'
 }
 
 // The sample build uses multiple directories to
@@ -62,5 +65,16 @@ android {
         androidTest.java.srcDirs = ['tests/src']
 
     }
+
+    // Modules from Zendrive
+
+    lintOptions {
+            // This is needed to avoid spurious lint errors from libthrift and log4j.
+            disable 'InvalidPackage'
+        }
+        packagingOptions {
+            exclude 'META-INF/LICENSE.txt'
+            exclude 'META-INF/NOTICE.txt'
+        }
 
 }

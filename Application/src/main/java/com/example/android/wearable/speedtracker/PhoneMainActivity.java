@@ -40,6 +40,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+// Import Zendrive SDK classes
+import com.zendrive.sdk.Zendrive;
+import com.zendrive.sdk.ZendriveConfiguration;
+import com.zendrive.sdk.ZendriveDriveDetectionMode;
+import com.zendrive.sdk.ZendriveDriverAttributes;
+import com.zendrive.sdk.ZendriveOperationResult;
+import com.zendrive.sdk.ZendriveOperationCallback;
+import com.zendrive.sdk.ZendriveAccidentConfidence;
+
 /**
  * The main activity for the handset application. When a watch device reconnects to the handset
  * app, the collected GPS data on the watch, if any, is synced up and user can see his/her track on
@@ -62,7 +71,122 @@ public class PhoneMainActivity extends AppCompatActivity implements
         mSelectedDateText = (TextView) findViewById(R.id.selected_date);
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mMapFragment.getMapAsync(this);
+
+        // Initialize the Zendrive SDK
+
+        // Zendrive SDK setup
+        String zendriveApplicationKey = "F4HzAXv8cj3fYrUFz0HuVS2erDaUzZ1r";   // Your Zendrive SDK Key
+
+        ZendriveDriverAttributes driverAttributes = new ZendriveDriverAttributes();
+        driverAttributes.setFirstName("Homer");
+        driverAttributes.setLastName("Simpson");
+        driverAttributes.setEmail("homer@springfield.com");
+        driverAttributes.setPhoneNumber("14155557334");
+
+        ZendriveConfiguration zendriveConfiguration = new ZendriveConfiguration(
+                zendriveApplicationKey, "Maggie");   // A unique id of the driver specific to your application
+        zendriveConfiguration.setDriverAttributes(driverAttributes);
+
+        Zendrive.setup(
+                this.getApplicationContext(),
+                zendriveConfiguration,
+                null,        // can be null.
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("True");  }
+                        else { System.out.println("UnTrue"); }
+                    }
+                }
+        );
+
+        // Trip Tracking - Start and Stop
+        Zendrive.startDrive("Maggie",    // A non empty <TRACKING_ID> must be specified
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("True");  }
+                        else { System.out.println("UnTrue"); }
+                    }
+                }
+        );
+
+        Zendrive.stopDrive("Maggie",    // <TRACKING_ID> of trip in progress
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("True");  }
+                        else { System.out.println("UnTrue"); }
+                    }
+                }
+        );
+
+        // Driving Sessions
+        Zendrive.startSession("Maggie");  // A non empty <SESSION ID> must be specified
+        Zendrive.stopSession();
+
+
+
+
+        //ZendriveDriveDetectionMode.AUTO_OFF disables automatic drive detection in the SDK.
+        ZendriveConfiguration ZendriveConfiguration = new ZendriveConfiguration(
+        zendriveApplicationKey, "Maggie", ZendriveDriveDetectionMode.AUTO_OFF);
+        Zendrive.setup(
+                this.getApplicationContext(),
+                zendriveConfiguration,
+                null,        // can be null.
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("UnTrue");  }
+                        else { System.out.println("UnTrue"); }
+                    }
+                }
+        );
+
+
+        // Turn on automatic drive detection in the SDK.
+
+        //*** Wrong name - setDriveDetectionMode
+        // Right name - setZendriveDriveDetectionMode
+
+        Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_ON,
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("UnTrue");  }
+                        else { System.out.println("UnTrue"); }
+                    }
+                }
+        );
+
+        //Turn off automatic drive detection in the SDK.
+        Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_OFF,
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("UnTrue");  }
+                        else { System.out.println("UnTrue"); }
+                    }
+                }
+        );
+
+
+        //Collision Detection
+        //*** ZendriveOperationResult result = <- not valid as triggerMockAccident
+        // returns void (i.e. nothing) yet you are trying to assign to result
+        Zendrive.triggerMockAccident(this.getApplicationContext(),
+                ZendriveAccidentConfidence.HIGH,
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("True");  }
+                        else { System.out.println("Fail"); }
+                    }
+                }
+        );
     }
+
 
     public void onClick(View view) {
         Calendar calendar = Calendar.getInstance();
