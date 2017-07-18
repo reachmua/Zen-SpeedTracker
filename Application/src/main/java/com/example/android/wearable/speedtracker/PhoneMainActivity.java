@@ -129,9 +129,27 @@ public class PhoneMainActivity extends AppCompatActivity implements
                 calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
+    public void stopDrive(View view){
+        //Turn off automatic drive detection in the SDK.
+        Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_OFF,
+                new ZendriveOperationCallback() {
+                    @Override
+                    public void onCompletion(ZendriveOperationResult result) {
+                        if (result.isSuccess()) {  System.out.println("True");  }
+                        else { System.out.println("UnTrue"); }
+                    }
+                }
+        );
+
+        stopStatusLabel=(TextView)findViewById(R.id.stop_status);
+        stopStatusLabel.setText("SDK Stopped");
+
+    }
+
     Calendar dateAndTime=Calendar.getInstance();
     DateFormat fmtDateAndTime=DateFormat.getDateTimeInstance();
     TextView dateAndTimeLabel;
+    TextView stopStatusLabel;
 
     // Time and Date Picker Input
 

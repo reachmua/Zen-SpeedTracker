@@ -41,6 +41,8 @@
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
                 android:onClick="onClick"
+                <!-- Remove to make "Time" visible -->
+                android:visibility="invisible"
                 android:text="Date" />
 
             <TextView
@@ -65,6 +67,25 @@
 
             <TextView
                 android:id="@+id/selected_time"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/date_picker"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
+                android:textStyle="italic" />
+
+            <Button
+                android:id="@+id/stop_drive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:onClick="stopDrive"
+                android:text="Stop Drive" />
+
+            <TextView
+                android:id="@+id/stop_status"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_below="@+id/date_picker"

@@ -36,16 +36,7 @@ public class NotificationPublisher extends BroadcastReceiver {
                 }
         );
 
-        //Turn off automatic drive detection in the SDK.
-        Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_OFF,
-                new ZendriveOperationCallback() {
-                    @Override
-                    public void onCompletion(ZendriveOperationResult result) {
-                        if (result.isSuccess()) {  System.out.println("UnTrue");  }
-                        else { System.out.println("UnTrue"); }
-                    }
-                }
-        );
+
 
     }
 }
