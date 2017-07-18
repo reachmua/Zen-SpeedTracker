@@ -118,7 +118,7 @@ public class PhoneMainActivity extends AppCompatActivity implements
         );
     }
 
-    // Select a Date - No defaults, not particualrly relevant to exercise.
+    // Select a Date - No defaults, not particularly relevant to exercise.
 
 
     public void onClick(View view) {
@@ -128,6 +128,8 @@ public class PhoneMainActivity extends AppCompatActivity implements
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
+
+    // This allows the Driver to Manually stop the time within the app.
 
     public void stopDrive(View view){
         //Turn off automatic drive detection in the SDK.
@@ -153,9 +155,6 @@ public class PhoneMainActivity extends AppCompatActivity implements
 
     // Time and Date Picker Input
 
-    // Notification Button.
-     Button btn;
-
     private TimePickerDialog.OnTimeSetListener timeListener =new TimePickerDialog.OnTimeSetListener() {
         public void onTimeSet(TimePicker view, int hourOfDay,
                               int minute) {
@@ -175,19 +174,18 @@ public class PhoneMainActivity extends AppCompatActivity implements
             } else {
                 dateAndTimeLabel.setText(fmtDateAndTime.format(dateAndTime.getTime()));
 
-                // Notifications
 
-                // Turn on automatic drive detection in the SDK.
                 int timeDifference = returnCalculateTimeDifferenceInSeconds(dateAndTime);
                 System.out.println("====== Time Difference: " + timeDifference + "s");
 
                 scheduleNotification(getNotification("SDK Started"), timeDifference);
                 // scheduleNotification(getNotification("SDK Started"), 5000);
 
-
             }
         }
     };
+
+    // Determine the Absolute time difference.
 
     public int returnCalculateTimeDifferenceInSeconds(Calendar selectedDateTimeObject){
         long currentTime, selectedTime;
@@ -195,6 +193,8 @@ public class PhoneMainActivity extends AppCompatActivity implements
         currentTime = new java.util.Date().getTime() / 1000;
         return (int) Math.abs(currentTime - selectedTime);
     }
+
+    // Determine if time selected is in the Future.
 
     public boolean isFutureTime(Calendar selectedDateTimeObject){
         long currentTime, selectedTime;
@@ -206,6 +206,8 @@ public class PhoneMainActivity extends AppCompatActivity implements
             return false;
         }
     }
+
+   // Determine if time is within 1 hour.
 
     public boolean isWithinHour(Calendar selectedDateTimeObject){
         // Convert Time Objects to Long
@@ -248,6 +250,8 @@ public class PhoneMainActivity extends AppCompatActivity implements
             //showTrack(calendar);
         }
     }
+
+    // Scheduler to Notify the driver when ride starts.
 
     private void scheduleNotification(Notification notification, int delayInSeconds) {
 

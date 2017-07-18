@@ -35,8 +35,5 @@ public class NotificationPublisher extends BroadcastReceiver {
                     }
                 }
         );
-
-
-
     }
 }
