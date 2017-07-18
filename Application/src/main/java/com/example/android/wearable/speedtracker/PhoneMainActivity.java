@@ -25,14 +25,29 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import android.app.DatePickerDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TimePickerDialog;
+import java.text.DateFormat;
+
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.TimePicker;
+import android.R.mipmap;
+
 
 import com.example.android.wearable.speedtracker.common.LocationEntry;
 
@@ -64,13 +79,13 @@ public class PhoneMainActivity extends AppCompatActivity implements
     private GoogleMap mMap;
     private SupportMapFragment mMapFragment;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
         mSelectedDateText = (TextView) findViewById(R.id.selected_date);
-        mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mMapFragment.getMapAsync(this);
+
 
         // Initialize the Zendrive SDK
 
@@ -99,93 +114,9 @@ public class PhoneMainActivity extends AppCompatActivity implements
                     }
                 }
         );
-
-        // Trip Tracking - Start and Stop
-        Zendrive.startDrive("Maggie",    // A non empty <TRACKING_ID> must be specified
-                new ZendriveOperationCallback() {
-                    @Override
-                    public void onCompletion(ZendriveOperationResult result) {
-                        if (result.isSuccess()) {  System.out.println("True");  }
-                        else { System.out.println("UnTrue"); }
-                    }
-                }
-        );
-
-        Zendrive.stopDrive("Maggie",    // <TRACKING_ID> of trip in progress
-                new ZendriveOperationCallback() {
-                    @Override
-                    public void onCompletion(ZendriveOperationResult result) {
-                        if (result.isSuccess()) {  System.out.println("True");  }
-                        else { System.out.println("UnTrue"); }
-                    }
-                }
-        );
-
-        // Driving Sessions
-        Zendrive.startSession("Maggie");  // A non empty <SESSION ID> must be specified
-        Zendrive.stopSession();
-
-
-
-
-        //ZendriveDriveDetectionMode.AUTO_OFF disables automatic drive detection in the SDK.
-        ZendriveConfiguration ZendriveConfiguration = new ZendriveConfiguration(
-        zendriveApplicationKey, "Maggie", ZendriveDriveDetectionMode.AUTO_OFF);
-        Zendrive.setup(
-                this.getApplicationContext(),
-                zendriveConfiguration,
-                null,        // can be null.
-                new ZendriveOperationCallback() {
-                    @Override
-                    public void onCompletion(ZendriveOperationResult result) {
-                        if (result.isSuccess()) {  System.out.println("UnTrue");  }
-                        else { System.out.println("UnTrue"); }
-                    }
-                }
-        );
-
-
-        // Turn on automatic drive detection in the SDK.
-
-        //*** Wrong name - setDriveDetectionMode
-        // Right name - setZendriveDriveDetectionMode
-
-        Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_ON,
-                new ZendriveOperationCallback() {
-                    @Override
-                    public void onCompletion(ZendriveOperationResult result) {
-                        if (result.isSuccess()) {  System.out.println("UnTrue");  }
-                        else { System.out.println("UnTrue"); }
-                    }
-                }
-        );
-
-        //Turn off automatic drive detection in the SDK.
-        Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_OFF,
-                new ZendriveOperationCallback() {
-                    @Override
-                    public void onCompletion(ZendriveOperationResult result) {
-                        if (result.isSuccess()) {  System.out.println("UnTrue");  }
-                        else { System.out.println("UnTrue"); }
-                    }
-                }
-        );
-
-
-        //Collision Detection
-        //*** ZendriveOperationResult result = <- not valid as triggerMockAccident
-        // returns void (i.e. nothing) yet you are trying to assign to result
-        Zendrive.triggerMockAccident(this.getApplicationContext(),
-                ZendriveAccidentConfidence.HIGH,
-                new ZendriveOperationCallback() {
-                    @Override
-                    public void onCompletion(ZendriveOperationResult result) {
-                        if (result.isSuccess()) {  System.out.println("True");  }
-                        else { System.out.println("Fail"); }
-                    }
-                }
-        );
     }
+
+    // Select a Date - No defaults, not particualrly relevant to exercise.
 
 
     public void onClick(View view) {
@@ -194,6 +125,109 @@ public class PhoneMainActivity extends AppCompatActivity implements
         new DatePickerDialog(PhoneMainActivity.this, PhoneMainActivity.this,
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    Calendar dateAndTime=Calendar.getInstance();
+    DateFormat fmtDateAndTime=DateFormat.getDateTimeInstance();
+    TextView dateAndTimeLabel;
+
+    // Time and Date Picker Input
+
+    // Notification Button.
+     Button btn;
+
+    private TimePickerDialog.OnTimeSetListener timeListener =new TimePickerDialog.OnTimeSetListener() {
+        public void onTimeSet(TimePicker view, int hourOfDay,
+                              int minute) {
+            dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            dateAndTime.set(Calendar.MINUTE, minute);
+            dateAndTimeLabel=(TextView)findViewById(R.id.selected_time);
+
+            if (!isFutureTime(dateAndTime)){
+                dateAndTimeLabel.setText("Please select a future time");
+                return;
+            }
+
+            if (!isWithinHour(dateAndTime)) { // If user does not select a time within the next hour, inform user to select a different time.
+                dateAndTimeLabel.setText("Please select a valid time within the next hour");
+            } else {
+                dateAndTimeLabel.setText(fmtDateAndTime.format(dateAndTime.getTime()));
+
+                // Notifications
+                Intent intent = new Intent();
+                PendingIntent pIntent = PendingIntent.getActivity(PhoneMainActivity.this,0,intent,0);
+                Notification n = new Notification.Builder(PhoneMainActivity.this)
+                        .setTicker("Notification Title")
+                        .setContentTitle("Trip Indicator")
+                        .setContentText("Zendriver is Moving.")
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentIntent(pIntent).getNotification();
+
+                n.flags = Notification.FLAG_AUTO_CANCEL;
+                NotificationManager nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+                nm.notify(0, n);
+
+                // Turn on automatic drive detection in the SDK.
+
+                // Start Drive
+                Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_ON,
+                        new ZendriveOperationCallback() {
+                            @Override
+                            public void onCompletion(ZendriveOperationResult result) {
+                                if (result.isSuccess()) {  System.out.println("True");  }
+                                else { System.out.println("UnTrue"); }
+                            }
+                        }
+                );
+
+                //Turn off automatic drive detection in the SDK.
+                Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_OFF,
+                        new ZendriveOperationCallback() {
+                            @Override
+                            public void onCompletion(ZendriveOperationResult result) {
+                                if (result.isSuccess()) {  System.out.println("UnTrue");  }
+                                else { System.out.println("UnTrue"); }
+                            }
+                        }
+                );
+            }
+        }
+    };
+
+    public boolean isFutureTime(Calendar selectedDateTimeObject){
+        long currentTime, selectedTime;
+        selectedTime = selectedDateTimeObject.getTime().getTime() / 1000;
+        currentTime = new java.util.Date().getTime() / 1000;
+        if (selectedTime > currentTime) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isWithinHour(Calendar selectedDateTimeObject){
+        // Convert Time Objects to Long
+        long currentTime, selectedTime;
+        selectedTime = selectedDateTimeObject.getTime().getTime() / 1000;
+        currentTime = new java.util.Date().getTime() / 1000;
+        //dateAndTimeLabel.setText("Time diff: " + (currentTime - selectedTime));
+        if (Math.abs(currentTime - selectedTime) <= 3600){ // Number of seconds in an hour
+            return true;
+        } else {
+            return false;
+        }
+        //dateAndTimeLabel.setText("Current Time: " + currentTime + " selected Time: " + selectedTime);
+
+    }
+
+    public void onTimeClick(View view) {
+
+        new TimePickerDialog(
+                PhoneMainActivity.this,
+                timeListener,
+                dateAndTime.get(Calendar.HOUR_OF_DAY),
+                dateAndTime.get(Calendar.MINUTE),
+                true).show();
     }
 
     @Override
@@ -209,7 +243,7 @@ public class PhoneMainActivity extends AppCompatActivity implements
             String date = DateUtils.formatDateTime(this, calendar.getTimeInMillis(),
                     DateUtils.FORMAT_SHOW_DATE);
             mSelectedDateText.setText(getString(R.string.showing_for_date, date));
-            showTrack(calendar);
+            //showTrack(calendar);
         }
     }
 
