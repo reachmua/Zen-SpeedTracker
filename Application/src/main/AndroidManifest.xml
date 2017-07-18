@@ -61,6 +61,8 @@
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/location"/>
             </intent-filter>
         </service>
+
+        <receiver android:name="com.example.android.wearable.speedtracker.NotificationPublisher" />
     </application>
 
 </manifest>

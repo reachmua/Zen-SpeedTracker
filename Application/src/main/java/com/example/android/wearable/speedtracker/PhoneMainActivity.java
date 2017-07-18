@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -35,6 +36,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
@@ -141,6 +143,8 @@ public class PhoneMainActivity extends AppCompatActivity implements
                               int minute) {
             dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
             dateAndTime.set(Calendar.MINUTE, minute);
+            dateAndTime.set(Calendar.SECOND, 0);
+
             dateAndTimeLabel=(TextView)findViewById(R.id.selected_time);
 
             if (!isFutureTime(dateAndTime)){
@@ -154,45 +158,25 @@ public class PhoneMainActivity extends AppCompatActivity implements
                 dateAndTimeLabel.setText(fmtDateAndTime.format(dateAndTime.getTime()));
 
                 // Notifications
-                Intent intent = new Intent();
-                PendingIntent pIntent = PendingIntent.getActivity(PhoneMainActivity.this,0,intent,0);
-                Notification n = new Notification.Builder(PhoneMainActivity.this)
-                        .setTicker("Notification Title")
-                        .setContentTitle("Trip Indicator")
-                        .setContentText("Zendriver is Moving.")
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentIntent(pIntent).getNotification();
-
-                n.flags = Notification.FLAG_AUTO_CANCEL;
-                NotificationManager nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-                nm.notify(0, n);
 
                 // Turn on automatic drive detection in the SDK.
+                int timeDifference = returnCalculateTimeDifferenceInSeconds(dateAndTime);
+                System.out.println("====== Time Difference: " + timeDifference + "s");
 
-                // Start Drive
-                Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_ON,
-                        new ZendriveOperationCallback() {
-                            @Override
-                            public void onCompletion(ZendriveOperationResult result) {
-                                if (result.isSuccess()) {  System.out.println("True");  }
-                                else { System.out.println("UnTrue"); }
-                            }
-                        }
-                );
+                scheduleNotification(getNotification("SDK Started"), timeDifference);
+                // scheduleNotification(getNotification("SDK Started"), 5000);
 
-                //Turn off automatic drive detection in the SDK.
-                Zendrive.setZendriveDriveDetectionMode(ZendriveDriveDetectionMode.AUTO_OFF,
-                        new ZendriveOperationCallback() {
-                            @Override
-                            public void onCompletion(ZendriveOperationResult result) {
-                                if (result.isSuccess()) {  System.out.println("UnTrue");  }
-                                else { System.out.println("UnTrue"); }
-                            }
-                        }
-                );
+
             }
         }
     };
+
+    public int returnCalculateTimeDifferenceInSeconds(Calendar selectedDateTimeObject){
+        long currentTime, selectedTime;
+        selectedTime = selectedDateTimeObject.getTime().getTime() / 1000;
+        currentTime = new java.util.Date().getTime() / 1000;
+        return (int) Math.abs(currentTime - selectedTime);
+    }
 
     public boolean isFutureTime(Calendar selectedDateTimeObject){
         long currentTime, selectedTime;
@@ -246,6 +230,27 @@ public class PhoneMainActivity extends AppCompatActivity implements
             //showTrack(calendar);
         }
     }
+
+    private void scheduleNotification(Notification notification, int delayInSeconds) {
+
+        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        long futureInMillis = SystemClock.elapsedRealtime() + (delayInSeconds * 1000);
+        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
+    }
+
+    private Notification getNotification(String content) {
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setContentTitle("Scheduled Notification");
+        builder.setContentText(content);
+        builder.setSmallIcon(R.drawable.ic_launcher);
+        return builder.build();
+    }
+
 
     /**
      * An {@link android.os.AsyncTask} that is responsible for getting a list of {@link
