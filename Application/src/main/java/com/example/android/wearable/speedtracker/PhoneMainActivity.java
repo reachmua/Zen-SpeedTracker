@@ -142,7 +142,7 @@ public class PhoneMainActivity extends AppCompatActivity implements
         );
 
         stopStatusLabel=(TextView)findViewById(R.id.stop_status);
-        stopStatusLabel.setText("SDK Stopped");
+        stopStatusLabel.setText("Drive Stopped");
 
     }
 

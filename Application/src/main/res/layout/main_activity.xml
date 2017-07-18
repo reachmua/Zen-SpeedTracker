@@ -34,6 +34,7 @@
             android:orientation="vertical">
 
 
+            <!-- Remove to make "Time" visible -->
             <Button
                 android:id="@+id/date_picker"
                 android:layout_width="match_parent"
@@ -41,7 +42,6 @@
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
                 android:onClick="onClick"
-                <!-- Remove to make "Time" visible -->
                 android:visibility="invisible"
                 android:text="Date" />
 
